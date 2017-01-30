@@ -6,6 +6,33 @@ import sox
 import charapinlib
 import shutil
 
+from pprint import pprint
+def main_tg(args):
+    """
+    """
+    import guitarpro
+
+    with open(args.songfile,"r") as fin:
+        res = guitarpro.parse(fin)
+
+    pprint (res.__attr__)
+    #for s in res:
+    #    pprint (s)
+    
+    t = res.tracks[0]
+    pprint(t.__attr__)
+    #for s in t:
+    #    pprint (s)
+    ms = t.measures
+
+    measure = ms[1]
+    pprint(measure.__attr__)
+
+    v = measure.voices[0]
+    pprint(v.__attr__)
+
+    beat = v.beats[0]
+    pprint(beat.__attr__)
 def main_json(args):
 
     with open(args.songfile,"r") as fin:
@@ -55,4 +82,6 @@ if __name__=="__main__":
     
     if ".json" in args.songfile:
         main_json(args)
+    if ".gp3" in args.songfile:
+        main_tg(args)
 
