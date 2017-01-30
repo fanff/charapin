@@ -33,22 +33,18 @@ for _id ,_ in enumerate(d.split("\n")):
             except :
                 pass
 
-def notetonotekey(note):
-    """
-    return 0
-    """
+notetonotekey = { j[0]:i for i,j in enumerate( sorted(notetofreq.items(),key=lambda x : x[1] ))}
 
 def relativePitch(note,root):
     """
 
     """
-    return (notetonotekey(root) - notetonotekey(note))
+    return (notetonotekey[note] - notetonotekey[root] )
 
 if __name__ == "__main__":
 
     from pprint import pprint
 
-    notetonotekey = { j[0]:i for i,j in enumerate( sorted(notetofreq.items(),key=lambda x : x[1] ))}
     
     pprint(notetonotekey)
 

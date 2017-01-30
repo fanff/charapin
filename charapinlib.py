@@ -19,49 +19,24 @@ def randomFileName():
 def findPitchOn(txt,pitch):
     # find good espeak pitch 
     # ROOT NOTE = B4
-    # 
-    data=[]
-    for pitchshift in [50]:
-        tmpfile = randomFileName()
-
-        ttscmd = ["espeak","-s","300","-v","fr","-p",str(pitchshift),"-w",tmpfile,txt ]
-        subprocess.check_output( ttscmd) 
-        #pprint( sox.file_info.stat(tmpfile))
-        peakf = float(sox.file_info.stat(tmpfile)["Rough   frequency"])
-
-        dist = abs(peakf-pitch)
-
-        data.append([pitchshift,dist,tmpfile]) 
-    sortedData = sorted(data,key=lambda x: x[1])
-    #pprint(sortedData)
-    goodshift= sortedData[0][2]
-    #Found good espeak shift  
-    
-    soxpitchmin, soxpitchmax = (-12.,12.) 
-    soxpitchstep = (soxpitchmax - soxpitchmin)/float(PITCHMF)
-    data = []
-    currentStep = soxpitchmin
-    while currentStep<soxpitchmax:
-        tmpfile2=randomFileName()
-        tfm = sox.Transformer()
-        tfm.pitch(currentStep)
-        tfm.build(goodshift,tmpfile2)
-        peakf = float(sox.file_info.stat(tmpfile2)["Rough   frequency"])
-
-        dist = abs(peakf-pitch)
-
-        data.append([currentStep,dist,tmpfile2]) 
         
-        currentStep+=soxpitchstep
+    pitchshift = notetofreq.relativePitch(pitch,"B4")
+    #print pitch,pitchshift
+    tmpfile = randomFileName()
+    
+    espeakPitch = 50
+    ttscmd = ["espeak","-s","300","-v","fr","-p",str(espeakPitch),"-w",tmpfile,txt ]
+    subprocess.check_output( ttscmd) 
+    
 
-    sortedData = sorted(data,key=lambda x: x[1])
-    #pprint(sortedData)
+    tmpfile2=randomFileName()
+    tfm = sox.Transformer()
+    tfm.pitch(pitchshift)
+    tfm.build(tmpfile,tmpfile2)
+    
+    return tmpfile2    
 
-    pprint(sortedData[0])
-    goodsoxshift= sortedData[0][2]
 
-
-    return goodsoxshift    
 
 
 
@@ -106,7 +81,29 @@ def storeWord(key,word):
     """
     shutil.copy(word,os.path.join(CACHEDIR,key+".wav"))
     return os.path.join(CACHEDIR,key+".wav") 
-def genWord(txt,pitch,length):
+
+
+def genChannel(wordList,bpm=160.0,repeat=1):
+
+    gens = []
+    for word in wordList:
+        txt,pitch,length = word
+        w = genWord(txt,pitch,length,bpm)
+        gens.append(w)
+    
+    #concat
+    tmpfile = randomFileName()
+    combiner = sox.combine.Combiner()
+
+    repeated = []
+    for i in range(repeat):
+        repeated+=gens
+
+    combiner.build(repeated,tmpfile,combine_type="concatenate")
+
+    return tmpfile
+
+def genWord(txt,pitch,length,bpm=160.0):
     """
 
     length in note duration. 1 = black
@@ -115,7 +112,7 @@ def genWord(txt,pitch,length):
     """
     
     def makekey():
-        key= (txt,pitch,length,BPM,PITCHMF)
+        key= (txt,pitch,length,bpm)
 
         key = [str(_) for _ in key]
         key="SEP".join(key)
@@ -126,22 +123,20 @@ def genWord(txt,pitch,length):
     key = makekey()
     word = getWord(key)
     if word!=False:
-        print "found word "+key
+        #print "found word "+key
 
         return word
     else:
-        print "building word "+key
+        #print "building word "+key
         
 
-        blackduration = 1.0/(BPM/60.0) # the more the slower
+        blackduration = 1.0/(bpm/60.0) # the more the slower
         
-        pitched = findPitchOn(txt,NTF[pitch])
+        pitched = findPitchOn(txt,pitch)
         timed = adjustTimeOn(pitched,length*blackduration)
         # 
         word = storeWord(key,timed)
 
-        # clean WORK
-        cleanWORK()
 
         
         return word
@@ -150,15 +145,7 @@ def cleanWORK():
     shutil.rmtree(WORKDIR)
     os.mkdir(WORKDIR)
 
-PITCHMF = 100  # The more the better the longer the slower
-BPM = 160
-WORKDIR = "/dev/shm/WORK"
-CACHEDIR = "./CACHE"
-
-MONGOPORT = 5517
-if __name__=="__main__":
-    logging.basicConfig(level=logging.ERROR)
-    
+def makeFolders():
     try:
         os.mkdir(WORKDIR)
     except:
@@ -168,6 +155,14 @@ if __name__=="__main__":
         os.mkdir(CACHEDIR)
     except:
         pass
+
+
+WORKDIR = "/dev/shm/WORK"
+CACHEDIR = "./CACHE"
+
+if __name__=="__main__":
+    logging.basicConfig(level=logging.ERROR)
+    makeFolders() 
     sub =[
 
         genWord("a","A3",1),
@@ -254,6 +249,8 @@ if __name__=="__main__":
     outfile = "out.wav"
     combiner.build(tocombine,outfile,combine_type="concatenate")
 
+    # clean WORK
+    cleanWORK()
     play(outfile)
     
 
