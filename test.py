@@ -18,6 +18,8 @@ def randomFileName():
 
 def findPitchOn(txt,pitch):
     # find good espeak pitch 
+    # ROOT NOTE = B4
+    # 
     data=[]
     for pitchshift in [50]:
         tmpfile = randomFileName()
@@ -92,8 +94,8 @@ def play(filename):
 def getWord(key):
     """
     """
-    if os.path.isfile(os.path.join("CACHE",key+".wav")):
-        return os.path.join("CACHE",key+".wav")
+    if os.path.isfile(os.path.join(CACHEDIR,key+".wav")):
+        return os.path.join(CACHEDIR,key+".wav")
     else:
         return False
 
@@ -102,8 +104,8 @@ def storeWord(key,word):
     word is a filename
     key is a key
     """
-    shutil.copy(word,os.path.join("CACHE",key+".wav"))
-    return os.path.join("CACHE",key+".wav") 
+    shutil.copy(word,os.path.join(CACHEDIR,key+".wav"))
+    return os.path.join(CACHEDIR,key+".wav") 
 def genWord(txt,pitch,length):
     """
 
@@ -151,6 +153,7 @@ def cleanWORK():
 PITCHMF = 100  # The more the better the longer the slower
 BPM = 160
 WORKDIR = "/dev/shm/WORK"
+CACHEDIR = "./CACHE"
 
 MONGOPORT = 5517
 if __name__=="__main__":
@@ -158,6 +161,11 @@ if __name__=="__main__":
     
     try:
         os.mkdir(WORKDIR)
+    except:
+        pass
+
+    try:
+        os.mkdir(CACHEDIR)
     except:
         pass
     sub =[

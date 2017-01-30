@@ -1,5 +1,4 @@
 
-
 d ="""N Note/octave     0   1   2   3   4   5   6   7
 C  32.70   65.41   130.81  261.63  523.25  1046.50     2093.00     4186.01
 C#  34.65   69.30   138.59  277.18  554.37  1108.73     2217.46     4434.92
@@ -33,4 +32,25 @@ for _id ,_ in enumerate(d.split("\n")):
                 it+=1
             except :
                 pass
+
+def notetonotekey(note):
+    """
+    return 0
+    """
+
+def relativePitch(note,root):
+    """
+
+    """
+    return (notetonotekey(root) - notetonotekey(note))
+
+if __name__ == "__main__":
+
+    from pprint import pprint
+
+    notetonotekey = { j[0]:i for i,j in enumerate( sorted(notetofreq.items(),key=lambda x : x[1] ))}
+    
+    pprint(notetonotekey)
+
+
         
